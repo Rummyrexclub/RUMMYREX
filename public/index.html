@@ -34,20 +34,14 @@
         <span class="switch" onclick="toggleView()">Already have an account? Login</span>
     </div>
 
-    <a href="https://wa.me/917997700070?text=Hi%20Kalyan,%20I%20want%20to%20add%20coins" class="support-btn">💬 WhatsApp Support</a>
+    <a href="https://wa.me/917997700070" class="support-btn">💬 WhatsApp Support</a>
 
     <script>
-        // Toggle view between Login and Signup
         function toggleView() {
             var l = document.getElementById('loginBox');
             var r = document.getElementById('regBox');
-            if(l.style.display === "none") {
-                l.style.display = "block";
-                r.style.display = "none";
-            } else {
-                l.style.display = "none";
-                r.style.display = "block";
-            }
+            if(l.style.display === "none") { l.style.display = "block"; r.style.display = "none"; }
+            else { l.style.display = "none"; r.style.display = "block"; }
         }
 
         async function processLogin() {
@@ -62,8 +56,13 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert("Welcome " + data.name + "! Login Successful.");
-                window.location.href = "https://wa.me/917997700070?text=I%20am%20Logged%20In";
+                // Ikkada user details save chesthunnam
+                localStorage.setItem('userName', data.name);
+                localStorage.setItem('coins', data.coins || 100);
+                
+                alert("Welcome " + data.name + "!");
+                // Direct ga lobby.html ki redirect chesthunnam
+                window.location.href = "lobby.html"; 
             } else {
                 alert("Invalid Phone or Password!");
             }
@@ -85,11 +84,9 @@
                 alert("Account Created! 100 Bonus Coins vachayi.");
                 toggleView();
             } else {
-                alert("Signup failed! Malli try chey.");
+                alert("Signup failed!");
             }
         }
     </script>
 </body>
 </html>
-
-
