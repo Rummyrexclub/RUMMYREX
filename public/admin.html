@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rummy Rex - Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: auto; }
+        h2 { text-align: center; color: #0a4d2d; border-bottom: 2px solid #0a4d2d; padding-bottom: 10px; }
+        .user-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid #ffd700; }
+        .user-info { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .phone { color: #666; font-size: 0.9em; }
+        .coins-display { font-weight: bold; color: #2e7d32; font-size: 1.1em; }
+        .controls { display: flex; gap: 10px; margin-top: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; outline: none; }
+        button { background: #0a4d2d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:active { transform: scale(0.98); }
+        .loading { text-align: center; font-style: italic; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>RUMMY REX ADMIN</h2>
+    <div id="userList" class="loading">Fetching users from database...</div>
+</div>
+
+<script>
+    // Database nundi users list teeskuraavadam
+    async function loadUsers() {
+        try {
+            const res = await fetch('/api/admin/users');
+            const users = await res.json();
+            const container = document.getElementById('userList');
+            
+            if (users.length === 0) {
+                container.innerHTML = "No users found in database.";
+                return;
+            }
+
+            container.innerHTML = '';
+            users.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.innerHTML = `
+                    <div class="user-info">
+                        <div>
+                            <strong>${user.name}</strong><br>
+                            <span class="phone">📱 ${user.phone}</span>
+                        </div>
+                        <div class="coins-display">🪙 ${user.coins}</div>
+                    </div>
+                    <div class="controls">
+                        <input type="number" id="amt-${user._id}" placeholder="Enter amount">
+                        <button onclick="addCoins('${user._id}')">ADD</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        } catch (err) {
+            document.getElementById('userList').innerHTML = "Error loading users. Check server logs.";
+        }
+    }
+
+    // Coins add chese function
+    async function addCoins(userId) {
+        const amount = document.getElementById(`amt-${userId}`).value;
+        if (!amount) return alert("Amount enter chey mama!");
+
+        const res = await fetch('/api/admin/update-coins', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, amount })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            alert("Coins added successfully!");
+            loadUsers(); // List ni refresh chesthunnam
+        } else {
+            alert("Update failed!");
+        }
+    }
+
+    // Page load avvagane users ni chupinchu
+    loadUsers();
+</script>
+
+</body>
+</html>
