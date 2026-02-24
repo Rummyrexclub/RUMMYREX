@@ -13,37 +13,33 @@ app.use(cors());
 app.use(express.static('public'));
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("DATABASE CONNECTED SUCCESS!"))
-    .catch(err => console.log("DB Error:", err));
+    .then(() => console.log("DB CONNECTED"))
+    .catch(err => console.log(err));
 
 const User = mongoose.model('User', new mongoose.Schema({
     name: String, phone: String, password: String, 
-    coins: { type: Number, default: 100 }
+    coins: { type: Number, default: 1000 }
 }));
 
-io.on('connection', (socket) => {
-    socket.on('joinGame', (data) => {
-        socket.join('rummyTable');
-    });
+// API to Handle Win or Loss
+app.post('/api/game/update-balance', async (req, res) => {
+    const { name, amount } = req.body; // amount can be positive or negative
+    try {
+        const user = await User.findOneAndUpdate(
+            { name: name },
+            { $inc: { coins: parseInt(amount) } },
+            { new: true }
+        );
+        res.json({ success: true, newBalance: user.coins });
+    } catch (e) {
+        res.status(500).json({ success: false });
+    }
 });
 
 app.post('/api/login', async (req, res) => {
-    try {
-        const user = await User.findOne(req.body);
-        if (user) res.json({ success: true, name: user.name, coins: user.coins });
-        else res.json({ success: false });
-    } catch(e) { res.status(500).json({success: false}); }
+    const user = await User.findOne(req.body);
+    if (user) res.json({ success: true, name: user.name, coins: user.coins });
+    else res.json({ success: false });
 });
 
-app.get('/api/admin/users', async (req, res) => {
-    const users = await User.find({}, 'name phone coins');
-    res.json(users);
-});
-
-app.post('/api/admin/update-coins', async (req, res) => {
-    const { userId, amount } = req.body;
-    await User.findByIdAndUpdate(userId, { $inc: { coins: parseInt(amount) } });
-    res.json({ success: true });
-});
-
-server.listen(process.env.PORT || 10000, () => console.log("Server Live"));
+server.listen(process.env.PORT || 10000, () => console.log("Server Running"));
