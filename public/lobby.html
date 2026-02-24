@@ -1,59 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Rummy Rex - Lobby</title>
+    <title>Rummy Rex - High Stakes Lobby</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background: radial-gradient(circle, #0a4d2d 0%, #052c1a 100%); color: white; font-family: sans-serif; text-align: center; margin: 0; }
-        .header { background: #000; padding: 15px; border-bottom: 2px solid #ffd700; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .coin-box { background: linear-gradient(180deg, #ffeb3b 0%, #fbc02d 100%); color: black; padding: 5px 15px; border-radius: 20px; font-weight: bold; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        .game-container { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        .game-card { background: rgba(0,0,0,0.7); width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; border: 1px solid #ffd700; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h2 { color: #ffd700; margin: 0 0 10px 0; }
-        .play-btn { background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%); color: white; padding: 12px 30px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 18px; width: 100%; transition: 0.3s; }
+        body { background: #073b1c; color: white; font-family: sans-serif; margin: 0; }
+        .header { background: #000; padding: 15px; border-bottom: 2px solid gold; display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .container { padding: 15px; }
+        .table-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .table-card { background: linear-gradient(145deg, #1a5d2d, #052c1a); padding: 20px; border-radius: 12px; border: 2px solid gold; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        .fee { font-size: 22px; font-weight: bold; color: gold; }
+        .play-btn { background: linear-gradient(to bottom, #4caf50, #2e7d32); color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px #000; }
         .play-btn:active { transform: scale(0.95); }
-        .footer-nav { margin-top: 30px; padding-bottom: 20px; }
-        .support-link { color: #ffd700; text-decoration: none; font-weight: bold; font-size: 14px; border: 1px solid #ffd700; padding: 10px 20px; border-radius: 50px; }
     </style>
 </head>
 <body>
-
     <div class="header">
-        <span style="font-weight: bold; color: #ffd700;">RUMMY REX</span>
-        <div class="coin-box">🪙 <span id="userCoins">0</span></div>
+        <div style="color: gold; font-weight: bold;">Kalyan Verse Rummy</div>
+        <div>🪙 <span id="userCoins">0</span></div>
     </div>
-
-    <div class="game-container">
-        <div class="game-card">
-            <h2>POINT RUMMY</h2>
-            <p style="font-size: 14px; color: #ccc;">Entry Fee: 10 Coins</p>
-            <button class="play-btn" onclick="playGame()">PLAY NOW</button>
-        </div>
-
-        <div class="game-card" style="opacity: 0.7;">
-            <h2>POOL RUMMY</h2>
-            <p style="font-size: 14px; color: #ccc;">Coming Soon...</p>
-            <button class="play-btn" style="background: #555; cursor: not-allowed;">LOCKED</button>
-        </div>
-    </div>
-
-    <div class="footer-nav">
-        <a href="https://wa.me/917997700070" class="support-link">💬 RECHARGE COINS</a>
+    <div class="container">
+        <h3 style="text-align: center; color: #fff;">SELECT ENTRY FEE</h3>
+        <div class="table-grid" id="lobbyList"></div>
     </div>
 
     <script>
-        // LocalStorage nundi coins fetch chestunnam
-        const coins = localStorage.getItem('coins') || 0;
-        document.getElementById('userCoins').innerText = coins;
+        const coins = parseInt(localStorage.getItem('coins')) || 0;
+        document.getElementById('userCoins').innerText = coins.toLocaleString();
 
-        function playGame() {
-            // User coins check chestunnam
-            if(parseInt(coins) < 10) {
-                alert("Coins saripovu mama! Minimum 10 coins undali.");
-            } else {
-                // Ikkada direct ga play.html page ki redirect chestunnam
-                window.location.href = "play.html";
+        const entryFees = [500, 2000, 5000, 10000, 50000, 100000];
+        const listDiv = document.getElementById('lobbyList');
+
+        entryFees.forEach(fee => {
+            listDiv.innerHTML += `
+                <div class="table-card">
+                    <div>
+                        <div class="fee">₹${fee.toLocaleString()}</div>
+                        <small style="color: #ccc;">Pool 101/201 Game</small>
+                    </div>
+                    <button class="play-btn" onclick="joinTable(${fee})">PLAY NOW</button>
+                </div>
+            `;
+        });
+
+        function joinTable(fee) {
+            if (coins < fee) {
+                alert("Insufficient Balance! Please add more coins.");
+                return;
             }
+            localStorage.setItem('currentEntryFee', fee);
+            location.href = 'play.html';
         }
     </script>
 </body>
