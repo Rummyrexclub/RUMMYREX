@@ -12,8 +12,9 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
 
+// Database Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ DB CONNECTED"))
+    .then(() => console.log("✅ DATABASE CONNECTED"))
     .catch(err => console.log("❌ DB ERROR:", err));
 
 const User = mongoose.model('User', new mongoose.Schema({
@@ -29,7 +30,6 @@ io.on('connection', (socket) => {
         let rId = "official_room";
         socket.join(rId);
         
-        // Active Timer Sync
         if(!rooms[rId]) {
             rooms[rId] = { timer: 30 };
             setInterval(() => {
@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
                 } else { rooms[rId].timer = 30; }
             }, 1000);
         }
-        // Send initial game data
+        // Send initial game data immediately
         io.to(rId).emit('gameStart', { status: 'live' });
     });
 });
@@ -48,6 +48,14 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ phone: req.body.phone, password: req.body.password });
     if(user) res.json({ success: true, name: user.name, coins: user.coins });
     else res.json({ success: false });
+});
+
+app.post('/api/signup', async (req, res) => {
+    try {
+        const user = new User(req.body);
+        await user.save();
+        res.json({ success: true, name: user.name, coins: user.coins });
+    } catch (e) { res.json({ success: false }); }
 });
 
 server.listen(process.env.PORT || 10000, () => console.log("🚀 ENGINE LIVE"));
