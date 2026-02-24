@@ -1,7 +1,7 @@
 {
-  "name": "rummy-rex",
+  "name": "rummyrex",
   "version": "1.0.0",
-  "description": "Professional Rummy Login System",
+  "description": "Rummy Rex Game Server",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
@@ -9,6 +9,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "mongoose": "^7.0.0",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "socket.io": "^4.6.1"
   }
 }
