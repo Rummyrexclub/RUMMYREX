@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rummy Rex - Game Table</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <style>
+        body { background: #073b1c; color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
+        .table { width: 95vw; height: 60vh; background: radial-gradient(circle, #1a5d2d 0%, #052c1a 100%); margin: 20px auto; border-radius: 150px; border: 10px solid #5d4037; position: relative; box-shadow: inset 0 0 50px #000; }
+        
+        /* Players Positions */
+        .player { position: absolute; width: 60px; height: 60px; background: #222; border: 2px solid #ffd700; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .p1 { bottom: -30px; left: 50%; transform: translateX(-50%); } /* User */
+        .p2 { top: 50%; left: -30px; transform: translateY(-50%); }
+        .p3 { top: -30px; left: 50%; transform: translateX(-50%); }
+        .p4 { top: 50%; right: -30px; transform: translateY(-50%); }
+
+        /* Cards Area */
+        .cards-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 15px; }
+        .deck, .open-card { width: 50px; height: 75px; background: white; border-radius: 5px; border: 1px solid #000; color: black; font-weight: bold; padding: 5px; }
+        .deck { background: linear-gradient(135deg, #ff4444 0%, #990000 100%); color: white; display: flex; align-items: center; justify-content: center; }
+
+        /* Controls */
+        .controls { position: fixed; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 15px; display: flex; justify-content: space-around; }
+        .btn { padding: 10px 20px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-drop { background: #ff4444; color: white; }
+        .btn-sort { background: #2196f3; color: white; }
+        .btn-declare { background: #4caf50; color: white; }
+    </style>
+</head>
+<body>
+
+    <div style="padding: 10px; display: flex; justify-content: space-between;">
+        <span>🪙 <span id="balance">0</span></span>
+        <button onclick="location.href='lobby.html'" style="background:none; color:gold; border:1px solid; border-radius:5px;">EXIT</button>
+    </div>
+
+    <div class="table">
+        <div class="player p1">YOU</div>
+        <div class="player p2">Opp 1</div>
+        <div class="player p3">Opp 2</div>
+        <div class="player p4">Opp 3</div>
+
+        <div class="cards-center">
+            <div class="deck">🎴</div>
+            <div class="open-card" style="color: red;">♥️ A</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-drop">DROP</button>
+        <button class="btn btn-sort">SORT</button>
+        <button class="btn btn-declare">DECLARE</button>
+    </div>
+
+    <script>
+        document.getElementById('balance').innerText = localStorage.getItem('coins') || 0;
+    </script>
+</body>
+</html>
