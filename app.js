@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.static('public'));
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ DATABASE CONNECTED"))
+    .then(() => console.log("✅ DB CONNECTED"))
     .catch(err => console.log("❌ DB ERROR:", err));
 
 const User = mongoose.model('User', new mongoose.Schema({
@@ -21,12 +21,15 @@ const User = mongoose.model('User', new mongoose.Schema({
     password: String, coins: { type: Number, default: 1000 }
 }));
 
+// Turn & Room Logic for Official Gameplay
 let rooms = {};
 
 io.on('connection', (socket) => {
     socket.on('joinGame', (data) => {
-        let rId = "official_table";
+        let rId = "official_room";
         socket.join(rId);
+        
+        // Active Timer Sync
         if(!rooms[rId]) {
             rooms[rId] = { timer: 30 };
             setInterval(() => {
@@ -36,16 +39,9 @@ io.on('connection', (socket) => {
                 } else { rooms[rId].timer = 30; }
             }, 1000);
         }
+        // Send initial game data
         io.to(rId).emit('gameStart', { status: 'live' });
     });
-});
-
-app.post('/api/signup', async (req, res) => {
-    try {
-        const user = new User(req.body);
-        await user.save();
-        res.json({ success: true, name: user.name, coins: user.coins });
-    } catch (e) { res.json({ success: false }); }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -54,9 +50,4 @@ app.post('/api/login', async (req, res) => {
     else res.json({ success: false });
 });
 
-app.get('/api/admin/users', async (req, res) => {
-    const users = await User.find({}, 'name phone coins');
-    res.json(users);
-});
-
-server.listen(process.env.PORT || 10000, () => console.log("🚀 SERVER LIVE"));
+server.listen(process.env.PORT || 10000, () => console.log("🚀 ENGINE LIVE"));
