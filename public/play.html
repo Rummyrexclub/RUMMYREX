@@ -1,133 +1,128 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Rummy Rex - Professional Table</title>
+    <title>Rummy Rex Pro - High Stakes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <script src="/socket.io/socket.io.js"></script>
     <style>
         body { background: #073b1c; color: white; font-family: sans-serif; margin: 0; overflow: hidden; }
-        .header { padding: 10px; display: flex; justify-content: space-between; background: rgba(0,0,0,0.9); border-bottom: 2px solid gold; align-items: center; }
-        .table { width: 92vw; height: 52vh; background: radial-gradient(circle, #1a5d2d 0%, #052c1a 100%); margin: 20px auto; border-radius: 180px; border: 10px solid #5d4037; position: relative; box-shadow: inset 0 0 60px #000; }
-        
-        .player { position: absolute; width: 65px; height: 65px; background: #222; border: 2px solid gold; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; z-index: 10; }
-        .p1 { bottom: -35px; left: 50%; transform: translateX(-50%); } 
-        .p2 { top: 50%; left: -35px; transform: translateY(-50%); }
-        .p3 { top: -35px; left: 50%; transform: translateX(-50%); }
-        .p4 { top: 50%; right: -35px; transform: translateY(-50%); }
-
-        @keyframes turnGlow { 0% { box-shadow: 0 0 5px #00ff00; } 50% { box-shadow: 0 0 30px #00ff00; } 100% { box-shadow: 0 0 5px #00ff00; } }
-        .active-turn { border: 4px solid #00ff00 !important; animation: turnGlow 1.2s infinite; }
-        .timer-txt { font-size: 14px; color: #00ff00; font-weight: bold; }
-        .score-b { background: black; color: gold; padding: 2px 6px; border-radius: 5px; font-size: 9px; position: absolute; top: -20px; border: 1px solid gold; }
-
-        .cards-area { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 15px; }
-        .deck, .open-card { width: 50px; height: 72px; background: white; border-radius: 6px; border: 1px solid #333; color: black; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 12px #000; cursor: pointer; font-size: 18px; }
-        .deck { background: linear-gradient(135deg, #ff4444 0%, #990000 100%); color: white; border: 1px solid #fff; }
-
-        .hand { position: fixed; bottom: 85px; width: 100%; display: flex; justify-content: center; z-index: 20; padding: 0 5px; }
-        .card { width: 46px; height: 66px; background: white; border-radius: 5px; border: 1px solid #000; color: black; font-weight: bold; margin-left: -16px; box-shadow: -3px 0 10px rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
-        .card:hover { transform: translateY(-20px); }
-
+        .header { padding: 10px; display: flex; justify-content: space-between; background: #000; border-bottom: 2px solid gold; }
+        .table { width: 92vw; height: 50vh; background: radial-gradient(circle, #1a5d2d, #052c1a); margin: 20px auto; border-radius: 180px; border: 8px solid #5d4037; position: relative; }
+        .player { position: absolute; width: 60px; height: 60px; background: #222; border: 2px solid gold; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; }
+        .p1 { bottom: -30px; left: 50%; transform: translateX(-50%); } 
+        .p2 { top: 50%; left: -30px; transform: translateY(-50%); }
+        .p3 { top: -30px; left: 50%; transform: translateX(-50%); }
+        .p4 { top: 50%; right: -30px; transform: translateY(-50%); }
+        .active { border: 4px solid #00ff00 !important; box-shadow: 0 0 20px #00ff00; }
+        .cards-area { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 10px; }
+        .deck, .open-card { width: 45px; height: 65px; background: white; border-radius: 5px; color: black; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; box-shadow: 2px 2px 10px #000; }
+        .deck { background: linear-gradient(to bottom, #ff4444, #990000); color: white; }
+        .hand { position: fixed; bottom: 80px; width: 100%; display: flex; justify-content: center; }
+        .card { width: 45px; height: 65px; background: white; border-radius: 5px; border: 1px solid #000; color: black; margin-left: -15px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: -2px 0 5px #000; }
         .controls { position: fixed; bottom: 0; width: 100%; background: #000; padding: 15px 0; display: flex; justify-content: space-around; border-top: 2px solid gold; }
-        .btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; color: white; cursor: pointer; }
-        .btn-drop { background: #d32f2f; } .btn-sort { background: #1976d2; } .btn-declare { background: #388e3c; }
+        .btn { padding: 10px 15px; border-radius: 5px; border: none; font-weight: bold; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="header">
-        <div style="color: gold;">🪙 <span id="p_bal">0</span></div>
-        <div style="color: gold; font-weight: bold;">₹<span id="p_entry">0</span> Table</div>
-        <button onclick="location.href='lobby.html'" style="background:none; border:1px solid gold; color:gold; border-radius:4px; padding:3px 8px;">EXIT</button>
+        <div style="color: gold;">🪙 <span id="bal">0</span></div>
+        <div style="color: gold;">STAKE: ₹<span id="stake">0</span></div>
+        <button onclick="location.href='lobby.html'" style="color:white; background:red; border:none; border-radius:4px;">EXIT</button>
     </div>
 
     <div class="table">
-        <div class="player p1 active-turn" id="u1"><div class="score-b">Pts: 0</div><div class="timer-txt" id="tm">30</div>YOU</div>
-        <div class="player p2" id="u2"><div class="score-badge">Pts: 22</div>Bot 1</div>
-        <div class="player p3" id="u3"><div class="score-badge">Pts: 54</div>Bot 2</div>
-        <div class="player p4" id="u4"><div class="score-badge">Pts: 08</div>Bot 3</div>
-
+        <div class="player p1 active" id="u1">YOU<br><span id="tm">30</span></div>
+        <div class="player p2" id="u2">BOT 1</div>
+        <div class="player p3" id="u3">BOT 2</div>
+        <div class="player p4" id="u4">BOT 3</div>
         <div class="cards-area">
             <div class="deck" onclick="pick()">🎴</div>
-            <div class="open-card" id="opC" style="color:red;">♥️A</div>
+            <div class="open-card" id="opC">♥️A</div>
         </div>
     </div>
-
     <div class="hand" id="myHand"></div>
-
     <div class="controls">
-        <button class="btn btn-drop" onclick="location.href='lobby.html'">DROP</button>
-        <button class="btn btn-sort" onclick="sortH()">SORT</button>
-        <button class="btn btn-declare" onclick="decl()">DECLARE</button>
+        <button class="btn" style="background:red;" onclick="endGame('LOSS')">DROP</button>
+        <button class="btn" style="background:blue;" onclick="sortH()">SORT</button>
+        <button class="btn" style="background:green;" onclick="checkDeclare()">DECLARE</button>
     </div>
 
     <script>
-        document.getElementById('p_bal').innerText = localStorage.getItem('coins') || 0;
-        document.getElementById('p_entry').innerText = localStorage.getItem('currentEntryFee') || 500;
-        
+        let stake = parseInt(localStorage.getItem('currentEntryFee')) || 500;
+        document.getElementById('stake').innerText = stake.toLocaleString();
+        document.getElementById('bal').innerText = localStorage.getItem('coins');
+
+        let hand = [];
         const suits = ['♥️','♠️','♦️','♣️'];
         const vals = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-        let handCards = [];
-        let timer = 30;
-        let myTurn = true;
 
-        function start() {
-            for(let i=0; i<13; i++) handCards.push(suits[Math.floor(Math.random()*4)] + vals[Math.floor(Math.random()*13)]);
+        function init() {
+            for(let i=0; i<13; i++) hand.push(suits[Math.floor(Math.random()*4)] + vals[Math.floor(Math.random()*13)]);
             render();
-            setInterval(() => { if(myTurn && timer > 0) { timer--; document.getElementById('tm').innerText = timer; } }, 1000);
         }
 
         function render() {
-            const h = document.getElementById('myHand');
-            h.innerHTML = '';
-            handCards.forEach((c, i) => {
-                const d = document.createElement('div');
-                d.className = 'card';
-                d.style.color = (c.includes('♥️') || c.includes('♦️')) ? 'red' : 'black';
-                d.innerText = c;
-                d.onclick = () => drop(i);
-                h.appendChild(d);
+            const container = document.getElementById('myHand');
+            container.innerHTML = '';
+            hand.forEach((c, i) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.style.color = (c.includes('♥️') || c.includes('♦️')) ? 'red' : 'black';
+                div.innerText = c;
+                div.onclick = () => drop(i);
+                container.appendChild(div);
             });
         }
 
-        function pick() {
-            if(!myTurn || handCards.length > 13) return;
-            handCards.push(suits[Math.floor(Math.random()*4)] + vals[Math.floor(Math.random()*13)]);
-            render();
-        }
-
+        function pick() { if(hand.length < 14) { hand.push(suits[Math.floor(Math.random()*4)] + vals[Math.floor(Math.random()*13)]); render(); } }
+        
         function drop(i) {
-            if(!myTurn || handCards.length <= 13) return;
-            const discarded = handCards.splice(i, 1);
+            if(hand.length < 14) return;
+            const discarded = hand.splice(i, 1);
             document.getElementById('opC').innerText = discarded[0];
-            document.getElementById('opC').style.color = (discarded[0].includes('♥️') || discarded[0].includes('♦️')) ? 'red' : 'black';
             render();
             botCycle();
         }
 
         function botCycle() {
-            myTurn = false;
-            document.getElementById('u1').classList.remove('active-turn');
-            let sequence = ['u2', 'u3', 'u4'];
-            let step = 0;
-            
-            let interval = setInterval(() => {
-                if(step > 0) document.getElementById(sequence[step-1]).classList.remove('active-turn');
-                if(step < 3) {
-                    document.getElementById(sequence[step]).classList.add('active-turn');
-                    step++;
-                } else {
-                    clearInterval(interval);
-                    myTurn = true;
-                    timer = 30;
-                    document.getElementById('u1').classList.add('active-turn');
-                }
-            }, 1500);
+            document.getElementById('u1').classList.remove('active');
+            let b = 1;
+            let inter = setInterval(() => {
+                document.getElementById('u'+(b+1)).classList.add('active');
+                setTimeout(() => {
+                    document.getElementById('u'+(b+1)).classList.remove('active');
+                    b++;
+                    if(b > 3) {
+                        clearInterval(inter);
+                        document.getElementById('u1').classList.add('active');
+                        // Random Loss Logic: 70% chance bot wins after few turns
+                        if(Math.random() > 0.7) endGame('LOSS');
+                    }
+                }, 1000);
+            }, 1200);
         }
 
-        function sortH() { handCards.sort(); render(); }
-        function decl() { alert("101/201 Pool Validation Success! Coins Won."); }
+        async function endGame(type) {
+            const amount = (type === 'WIN') ? stake * 3 : -stake;
+            const response = await fetch('/api/game/update-balance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: localStorage.getItem('name'), amount: amount })
+            });
+            const data = await response.json();
+            localStorage.setItem('coins', data.newBalance);
+            document.getElementById('bal').innerText = data.newBalance;
+            alert(type === 'WIN' ? "You Won ₹"+amount : "You Lost ₹"+Math.abs(amount));
+            location.href = 'lobby.html';
+        }
 
-        start();
+        function checkDeclare() {
+            // High Loss Probability Logic
+            if(Math.random() > 0.2) endGame('LOSS');
+            else endGame('WIN');
+        }
+
+        function sortH() { hand.sort(); render(); }
+        init();
     </script>
 </body>
 </html>
