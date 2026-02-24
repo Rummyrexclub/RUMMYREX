@@ -1,101 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Rummy Pro Official</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; }
         .game-canvas { width: 100vw; height: 100vh; background: radial-gradient(circle, #2d5a27, #0a1f0a); position: relative; }
-        .rummy-table { width: 90vw; height: 60vh; border: 15px solid #5d4037; border-radius: 200px; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); box-shadow: inset 0 0 100px #000; }
-        
-        /* Decks */
-        .deck-box { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 40px; }
-        .card-stack { width: 60px; height: 80px; background: white; border-radius: 6px; color: black; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; box-shadow: 4px 4px 15px #000; cursor: pointer; }
-        .closed-deck { background: linear-gradient(135deg, #1b5e20, #0a1f0a); color: white; border: 2px solid gold; }
-
-        /* Card Grouping UI */
-        .player-hand { position: fixed; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 15px; }
-        .hand-group { display: flex; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); flex-direction: column; align-items: center; }
-        .group-label { font-size: 10px; color: gold; margin-top: 5px; background: #000; padding: 2px 5px; border-radius: 4px; }
-        .card-row { display: flex; }
-        .card { width: 45px; height: 65px; background: white; border-radius: 5px; color: black; margin-left: -25px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: -3px 0 8px #000; cursor: pointer; transition: 0.2s; }
+        .table { width: 85vw; height: 50vh; border: 10px solid #5d4037; border-radius: 200px; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); box-shadow: inset 0 0 100px #000; }
+        .player { position: absolute; width: 60px; text-align: center; color: #fff; }
+        .p1 { bottom: -45px; left: 50%; transform: translateX(-50%); }
+        .avatar { width: 45px; height: 45px; background: #222; border: 2px solid gold; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .active { border-color: #00ff00 !important; box-shadow: 0 0 15px #00ff00; }
+        .deck-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 30px; }
+        .slot { width: 50px; height: 70px; background: white; border-radius: 5px; color: black; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 10px #000; cursor: pointer; }
+        .hand { position: fixed; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        .card-group { display: flex; background: rgba(255,255,255,0.1); padding: 5px; border-radius: 5px; border: 1px dashed #555; }
+        .card { width: 35px; height: 55px; background: white; border-radius: 3px; color: black; margin-left: -18px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; box-shadow: -2px 0 5px #000; cursor: pointer; }
         .card:first-child { margin-left: 0; }
-        .card:hover { transform: translateY(-15px); }
-
-        .header { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 10px; background: rgba(0,0,0,0.8); border-bottom: 2px solid gold; font-size: 14px; z-index: 100; }
+        .header { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 10px; background: rgba(0,0,0,0.8); border-bottom: 2px solid gold; }
     </style>
 </head>
 <body>
     <div class="game-canvas">
         <div class="header">
-            <div style="color: gold;">🪙 <span id="userCoins">50000</span></div>
-            <div id="gameMsg">POOLED 201 RUMMY</div>
-            <div style="color: #00ff00;">TIMER: <span id="timer">30</span></div>
+            <div style="color: gold;">🪙 <span id="cb">0</span></div>
+            <div id="msg" style="color:#fff;">MATCHING...</div>
         </div>
-
-        <div class="rummy-table">
+        <div class="table">
+            <div class="player p1 active"><div class="avatar">YOU</div><div style="color:gold; font-size:10px;">Timer: <span id="timer">30</span></div></div>
             <div class="deck-box">
-                <div><div class="card-stack closed-deck" onclick="pickCard()">🎴</div><small style="color:#fff">CLOSED</small></div>
-                <div><div class="card-stack" id="openCard">♥️7</div><small style="color:#fff">OPEN</small></div>
+                <div class="slot" style="background:orange; color:white;" onclick="pick()">🎴</div>
+                <div class="slot" id="opC">♥️A</div>
             </div>
         </div>
-
-        <div class="player-hand" id="handDisplay"></div>
+        <div class="hand" id="myHand"></div>
     </div>
-
 <script>
     const socket = io();
-    let myHand = [
-        { cards: ['♥️3', '♥️4', '♥️5'], label: 'Pure Sequence' },
-        { cards: ['♣️J', '♣️Q', '♣️K'], label: 'Sequence' },
-        { cards: ['♦️7', '♦️8', '♦️9'], label: 'Invalid' },
-        { cards: ['♠️A', '♠️2'] }
-    ];
-
-    socket.on('connect', () => socket.emit('joinGame'));
-    socket.on('timerSync', (time) => document.getElementById('timer').innerText = time);
-
-    function renderHand() {
-        const container = document.getElementById('handDisplay');
-        container.innerHTML = '';
-        myHand.forEach((group, gIdx) => {
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'hand-group';
-            const row = document.createElement('div');
-            row.className = 'card-row';
-            group.cards.forEach((card, cIdx) => {
-                const el = document.createElement('div');
-                el.className = 'card';
-                el.style.color = (card.includes('♥️') || card.includes('♦️')) ? 'red' : 'black';
-                el.innerText = card;
-                el.onclick = () => discard(gIdx, cIdx);
-                row.appendChild(el);
+    document.getElementById('cb').innerText = localStorage.getItem('coins');
+    let hand = [['♥️3','♥️4','♥️5'], ['♣️J','♣️Q','♣️K'], ['♦️7','♦️8','♦️9'], ['♠️A','♠️2']];
+    socket.emit('joinGame', { name: localStorage.getItem('name') });
+    socket.on('timerUpdate', (t) => { document.getElementById('timer').innerText = t; });
+    socket.on('gameStart', () => { document.getElementById('msg').innerText = "YOUR TURN"; render(); });
+    function render() {
+        const h = document.getElementById('myHand'); h.innerHTML = '';
+        hand.forEach((g, gIdx) => {
+            const d = document.createElement('div'); d.className = 'card-group';
+            g.forEach((c, cIdx) => {
+                const cd = document.createElement('div'); cd.className = 'card';
+                cd.style.color = (c.includes('♥️') || c.includes('♦️')) ? 'red' : 'black';
+                cd.innerText = c; cd.onclick = () => discard(gIdx, cIdx);
+                d.appendChild(cd);
             });
-            groupDiv.appendChild(row);
-            if(group.label) {
-                const label = document.createElement('div');
-                label.className = 'group-label';
-                label.innerText = group.label;
-                groupDiv.appendChild(label);
-            }
-            container.appendChild(groupDiv);
+            h.appendChild(d);
         });
     }
-
-    function pickCard() {
-        myHand[myHand.length - 1].cards.push('♣️A');
-        renderHand();
-    }
-
+    function pick() { if(hand.flat().length < 14) { hand[hand.length-1].push('♣️K'); render(); } }
     function discard(gIdx, cIdx) {
-        if(myHand.flat().length < 13) return; // Basic rule
-        myHand[gIdx].cards.splice(cIdx, 1);
-        renderHand();
+        if(hand.flat().length < 14) return;
+        const c = hand[gIdx].splice(cIdx, 1);
+        document.getElementById('opC').innerText = c[0]; render();
     }
-
-    renderHand();
+    render();
 </script>
 </body>
 </html>
