@@ -6,93 +6,56 @@
     <title>Rummy Pro Official</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        * { box-sizing: border-box; }
         body { background: #000; margin: 0; overflow: hidden; font-family: sans-serif; }
-        .game-canvas { width: 100vw; height: 100vh; background: radial-gradient(circle, #2d5a27 0%, #0a1f0a 100%); position: relative; }
+        .game-canvas { width: 100vw; height: 100vh; background: radial-gradient(circle, #2d5a27, #0a1f0a); position: relative; }
+        .rummy-table { width: 90vw; height: 60vh; border: 15px solid #5d4037; border-radius: 200px; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); box-shadow: inset 0 0 100px #000; }
         
-        /* Professional Table */
-        .rummy-table { width: 85vw; height: 55vh; border: 15px solid #5d4037; border-radius: 200px; position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); box-shadow: inset 0 0 100px #000; }
-        
-        /* Players - 6 Seater Setup */
-        .player-node { position: absolute; width: 75px; text-align: center; color: #fff; z-index: 5; }
-        .pos-1 { bottom: -50px; left: 50%; transform: translateX(-50%); } /* YOU */
-        .pos-2 { bottom: 20%; left: -40px; } .pos-3 { top: 20%; left: -40px; }
-        .pos-4 { top: -50px; left: 50%; transform: translateX(-50%); }
-        .pos-5 { top: 20%; right: -40px; } .pos-6 { bottom: 20%; right: -40px; }
+        /* Decks */
+        .deck-box { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 40px; }
+        .card-stack { width: 60px; height: 80px; background: white; border-radius: 6px; color: black; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; box-shadow: 4px 4px 15px #000; cursor: pointer; }
+        .closed-deck { background: linear-gradient(135deg, #1b5e20, #0a1f0a); color: white; border: 2px solid gold; }
 
-        .avatar-frame { width: 55px; height: 55px; background: #222; border: 3px solid gold; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; position: relative; }
-        .active-glow { border-color: #00ff00 !important; box-shadow: 0 0 20px #00ff00; }
-        .score-pill { background: rgba(0,0,0,0.8); color: gold; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-top: 5px; border: 1px solid #444; }
+        /* Card Grouping UI */
+        .player-hand { position: fixed; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 15px; }
+        .hand-group { display: flex; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); flex-direction: column; align-items: center; }
+        .group-label { font-size: 10px; color: gold; margin-top: 5px; background: #000; padding: 2px 5px; border-radius: 4px; }
+        .card-row { display: flex; }
+        .card { width: 45px; height: 65px; background: white; border-radius: 5px; color: black; margin-left: -25px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: -3px 0 8px #000; cursor: pointer; transition: 0.2s; }
+        .card:first-child { margin-left: 0; }
+        .card:hover { transform: translateY(-15px); }
 
-        /* Decks in Middle */
-        .deck-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 40px; }
-        .card-stack { width: 55px; height: 75px; background: white; border-radius: 6px; color: black; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; box-shadow: 4px 4px 15px #000; cursor: pointer; }
-        .closed-deck { background: linear-gradient(135deg, #fbc02d, #f57f17); border: 2px solid white; color: white; }
-
-        /* Professional Card Grouping */
-        .player-hand { position: fixed; bottom: 15px; width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 10; }
-        .hand-group { display: flex; background: rgba(255,255,255,0.08); padding: 5px; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.3); }
-        .card-entity { width: 45px; height: 65px; background: white; border-radius: 5px; border: 1px solid #333; color: black; margin-left: -25px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: -3px 0 10px rgba(0,0,0,0.7); cursor: pointer; transition: 0.2s; }
-        .card-entity:first-child { margin-left: 0; }
-        .card-entity:hover { transform: translateY(-20px); z-index: 100; }
-
-        .header-strip { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 10px 20px; background: rgba(0,0,0,0.8); border-bottom: 2px solid gold; font-size: 14px; z-index: 20; }
-        .game-status { position: fixed; top: 60px; width: 100%; text-align: center; color: gold; font-weight: bold; font-size: 14px; }
-        .btn-layer { position: fixed; bottom: 100px; right: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .action-btn { padding: 10px 20px; border-radius: 5px; border: none; font-weight: bold; color: white; cursor: pointer; text-transform: uppercase; }
+        .header { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 10px; background: rgba(0,0,0,0.8); border-bottom: 2px solid gold; font-size: 14px; z-index: 100; }
     </style>
 </head>
 <body>
-
-<div class="game-canvas">
-    <div class="header-strip">
-        <div style="color: gold;">🪙 <span id="userCoins">0</span></div>
-        <div id="tableName">POOL 201 RUMMY</div>
-        <button onclick="location.href='lobby.html'" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px;">EXIT</button>
-    </div>
-
-    <div class="game-status" id="gameMsg">MATCHING PLAYERS...</div>
-
-    <div class="rummy-table">
-        <div class="player-node pos-1" id="p1"><div class="avatar-frame active-glow">YOU</div><div class="score-pill">Timer: <span id="timer">30</span></div></div>
-        <div class="player-node pos-2"><div class="avatar-frame">Opp 1</div><div class="score-pill">75 pts</div></div>
-        <div class="player-node pos-3"><div class="avatar-frame">Opp 2</div><div class="score-pill">Dropped</div></div>
-        <div class="player-node pos-4"><div class="avatar-frame">Opp 3</div><div class="score-pill">15 pts</div></div>
-        <div class="player-node pos-5"><div class="avatar-frame">Opp 4</div><div class="score-pill">60 pts</div></div>
-        <div class="player-node pos-6"><div class="avatar-frame">Opp 5</div><div class="score-pill">22 pts</div></div>
-
-        <div class="deck-box">
-            <div><div class="card-stack closed-deck" onclick="pickCard()">🎴</div><small>CLOSED</small></div>
-            <div><div class="card-stack" id="openCard">♥️A</div><small>OPEN</small></div>
+    <div class="game-canvas">
+        <div class="header">
+            <div style="color: gold;">🪙 <span id="userCoins">50000</span></div>
+            <div id="gameMsg">POOLED 201 RUMMY</div>
+            <div style="color: #00ff00;">TIMER: <span id="timer">30</span></div>
         </div>
-    </div>
 
-    <div class="player-hand" id="handDisplay"></div>
+        <div class="rummy-table">
+            <div class="deck-box">
+                <div><div class="card-stack closed-deck" onclick="pickCard()">🎴</div><small style="color:#fff">CLOSED</small></div>
+                <div><div class="card-stack" id="openCard">♥️7</div><small style="color:#fff">OPEN</small></div>
+            </div>
+        </div>
 
-    <div class="btn-layer">
-        <button class="action-btn" style="background:#b71c1c;" onclick="location.href='lobby.html'">DROP</button>
-        <button class="action-btn" style="background:#1b5e20;" onclick="declareGame()">DECLARE</button>
+        <div class="player-hand" id="handDisplay"></div>
     </div>
-</div>
 
 <script>
     const socket = io();
-    document.getElementById('userCoins').innerText = localStorage.getItem('coins') || 2000;
-    
-    // Grouped Cards Logic
     let myHand = [
-        ['♥️3', '♥️4', '♥️5'], 
-        ['♠️J', '♠️Q', '♠️K'], 
-        ['♣️7', '♣️8', '♣️9', '♣️10'],
-        ['♦️A', '♦️K']
+        { cards: ['♥️3', '♥️4', '♥️5'], label: 'Pure Sequence' },
+        { cards: ['♣️J', '♣️Q', '♣️K'], label: 'Sequence' },
+        { cards: ['♦️7', '♦️8', '♦️9'], label: 'Invalid' },
+        { cards: ['♠️A', '♠️2'] }
     ];
 
-    socket.emit('joinGame', { name: localStorage.getItem('name') });
-
-    socket.on('gameStart', (data) => {
-        document.getElementById('gameMsg').innerText = "GAME STARTED! YOUR TURN";
-        renderHand();
-    });
+    socket.on('connect', () => socket.emit('joinGame'));
+    socket.on('timerSync', (time) => document.getElementById('timer').innerText = time);
 
     function renderHand() {
         const container = document.getElementById('handDisplay');
@@ -100,35 +63,36 @@
         myHand.forEach((group, gIdx) => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'hand-group';
-            group.forEach((card, cIdx) => {
+            const row = document.createElement('div');
+            row.className = 'card-row';
+            group.cards.forEach((card, cIdx) => {
                 const el = document.createElement('div');
-                el.className = 'card-entity';
+                el.className = 'card';
                 el.style.color = (card.includes('♥️') || card.includes('♦️')) ? 'red' : 'black';
                 el.innerText = card;
                 el.onclick = () => discard(gIdx, cIdx);
-                groupDiv.appendChild(el);
+                row.appendChild(el);
             });
+            groupDiv.appendChild(row);
+            if(group.label) {
+                const label = document.createElement('div');
+                label.className = 'group-label';
+                label.innerText = group.label;
+                groupDiv.appendChild(label);
+            }
             container.appendChild(groupDiv);
         });
     }
 
     function pickCard() {
-        if(myHand.flat().length >= 14) return;
-        myHand[myHand.length - 1].push('♣️A');
+        myHand[myHand.length - 1].cards.push('♣️A');
         renderHand();
     }
 
     function discard(gIdx, cIdx) {
-        if(myHand.flat().length < 14) return;
-        const discarded = myHand[gIdx].splice(cIdx, 1);
-        document.getElementById('openCard').innerText = discarded[0];
-        document.getElementById('openCard').style.color = (discarded[0].includes('♥️') || discarded[0].includes('♦️')) ? 'red' : 'black';
+        if(myHand.flat().length < 13) return; // Basic rule
+        myHand[gIdx].cards.splice(cIdx, 1);
         renderHand();
-    }
-
-    function declareGame() {
-        alert("101/201 Pool Rummy - Validation Success!");
-        location.href = 'lobby.html';
     }
 
     renderHand();
