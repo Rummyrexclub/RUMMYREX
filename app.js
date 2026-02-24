@@ -1,12 +1,62 @@
-app.post('/api/login', async (req, res) => {
-    try {
-        const { phone, password } = req.body;
-        const user = await User.findOne({ phone: phone, password: password });
-        if (user) {
-            // Login success ayithe ikkade coins and name confirm chesthunnam
-            res.json({ success: true, name: user.name, coins: user.coins });
-        } else {
-            res.json({ success: false, message: "Invalid Details! Check Admin." });
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const http = require('http');
+const { Server } = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+app.use(express.json());
+app.use(cors());
+app.use(express.static('public'));
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ DATABASE CONNECTED"))
+    .catch(err => console.log("❌ DB ERROR:", err));
+
+const User = mongoose.model('User', new mongoose.Schema({
+    name: String, phone: { type: String, unique: true },
+    password: String, coins: { type: Number, default: 1000 }
+}));
+
+let rooms = {};
+
+io.on('connection', (socket) => {
+    socket.on('joinGame', (data) => {
+        let rId = "official_table";
+        socket.join(rId);
+        if(!rooms[rId]) {
+            rooms[rId] = { timer: 30 };
+            setInterval(() => {
+                if(rooms[rId].timer > 0) {
+                    rooms[rId].timer--;
+                    io.to(rId).emit('timerUpdate', rooms[rId].timer);
+                } else { rooms[rId].timer = 30; }
+            }, 1000);
         }
+        io.to(rId).emit('gameStart', { status: 'live' });
+    });
+});
+
+app.post('/api/signup', async (req, res) => {
+    try {
+        const user = new User(req.body);
+        await user.save();
+        res.json({ success: true, name: user.name, coins: user.coins });
     } catch (e) { res.json({ success: false }); }
 });
+
+app.post('/api/login', async (req, res) => {
+    const user = await User.findOne({ phone: req.body.phone, password: req.body.password });
+    if(user) res.json({ success: true, name: user.name, coins: user.coins });
+    else res.json({ success: false });
+});
+
+app.get('/api/admin/users', async (req, res) => {
+    const users = await User.find({}, 'name phone coins');
+    res.json(users);
+});
+
+server.listen(process.env.PORT || 10000, () => console.log("🚀 SERVER LIVE"));
