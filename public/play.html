@@ -2,162 +2,136 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Rummy</title>
+<title>Real Rummy Table</title>
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
 body{
     margin:0;
     background:radial-gradient(circle at top,#3b2a1a,#0b3d2e);
-    font-family:'Segoe UI',sans-serif;
+    font-family:sans-serif;
     color:white;
-    overflow:hidden;
 }
 
-/* ===== TOP BAR ===== */
+/* Top Bar */
 .topbar{
     display:flex;
     justify-content:space-between;
     padding:10px 15px;
     background:#111;
-    font-size:14px;
+    font-weight:bold;
 }
 
-/* ===== TABLE ===== */
-.table-wrapper{
+/* Table Section */
+.table-area{
+    position:relative;
+    height:55vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    height:65vh;
 }
 
 .table{
-    position:relative;
     width:90%;
-    max-width:750px;
-    height:320px;
+    max-width:700px;
+    height:260px;
     background:linear-gradient(145deg,#1e8449,#145a32);
-    border-radius:200px;
-    border:8px solid #a67c00;
+    border-radius:180px;
+    border:8px solid #b8860b;
     box-shadow:
         inset 0 0 40px rgba(0,0,0,0.7),
-        0 0 25px rgba(255,215,0,0.3);
+        0 0 30px rgba(255,215,0,0.3);
+    position:relative;
 }
 
-/* ===== DECKS ===== */
-.deck-area{
+/* Decks */
+.deck{
     position:absolute;
     top:50%;
     transform:translateY(-50%);
     text-align:center;
 }
 
-.closed-deck{
-    left:18%;
+.closed{
+    left:20%;
 }
 
-.open-deck{
-    right:18%;
+.open{
+    right:20%;
 }
 
-.deck-stack{
+.deck-box{
     width:60px;
     height:85px;
-    background:#0d0d0d;
     border-radius:8px;
-    box-shadow:0 6px 10px rgba(0,0,0,0.6);
+    box-shadow:0 6px 10px rgba(0,0,0,0.5);
 }
 
-.open-card{
-    width:60px;
-    height:85px;
+.closed .deck-box{
+    background:#111;
+}
+
+.open .deck-box{
     background:white;
     color:black;
     font-weight:bold;
     font-size:22px;
     display:flex;
-    justify-content:center;
     align-items:center;
-    border-radius:8px;
-    box-shadow:0 6px 10px rgba(0,0,0,0.6);
+    justify-content:center;
 }
 
-/* ===== CENTER SLOT ===== */
-.finish-slot{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    padding:15px 25px;
-    background:rgba(0,0,0,0.3);
-    border-radius:12px;
-    font-weight:bold;
-}
-
-/* ===== CARDS BOTTOM ===== */
-.cards-container{
-    position:absolute;
-    bottom:-55px;
+/* Cards bottom */
+.cards-area{
+    position:fixed;
+    bottom:90px;
     width:100%;
     text-align:center;
 }
 
 .card{
-    display:inline-block;
-    width:55px;
-    height:80px;
+    width:50px;
+    height:75px;
     background:white;
-    border-radius:10px;
-    margin:4px;
+    border-radius:8px;
+    display:inline-flex;
+    justify-content:center;
+    align-items:center;
     font-weight:bold;
     font-size:18px;
     color:black;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    box-shadow:0 6px 10px rgba(0,0,0,0.5);
+    margin:3px;
+    box-shadow:0 5px 8px rgba(0,0,0,0.5);
     cursor:pointer;
     transition:0.2s;
 }
 
 .card:hover{
-    transform:translateY(-10px);
+    transform:translateY(-8px);
 }
 
 .red{ color:red; }
 
-/* ===== BUTTONS ===== */
+/* Buttons */
 .controls{
-    position:absolute;
-    bottom:-110px;
+    position:fixed;
+    bottom:20px;
     width:100%;
     text-align:center;
 }
 
 button{
     margin:5px;
-    padding:10px 18px;
+    padding:10px 20px;
     border:none;
     border-radius:8px;
     font-weight:bold;
+    font-size:14px;
 }
 
 .sort{ background:#2979ff; color:white; }
 .drop{ background:#d50000; color:white; }
 .declare{ background:#00c853; color:white; }
-
-/* ===== AVATAR ===== */
-.avatar{
-    position:absolute;
-    bottom:-150px;
-    left:50%;
-    transform:translateX(-50%);
-    width:70px;
-    height:70px;
-    border-radius:50%;
-    background:#222;
-    border:4px solid gold;
-}
 </style>
 </head>
 
@@ -165,43 +139,31 @@ button{
 
 <div class="topbar">
 <div>Coins: <span id="coins">0</span></div>
-<div id="status">Deal Stage</div>
+<div id="status">Waiting...</div>
 </div>
 
-<div class="table-wrapper">
+<div class="table-area">
 <div class="table">
 
-<!-- CLOSED DECK -->
-<div class="deck-area closed-deck">
-<div class="deck-stack"></div>
+<div class="deck closed">
+<div class="deck-box"></div>
 <div>Closed</div>
 </div>
 
-<!-- OPEN DECK -->
-<div class="deck-area open-deck">
-<div class="open-card" id="openCard">?</div>
+<div class="deck open">
+<div class="deck-box" id="openCard">?</div>
 <div>Open</div>
 </div>
 
-<!-- FINISH SLOT -->
-<div class="finish-slot">
-FINISH SLOT
+</div>
 </div>
 
-<!-- PLAYER CARDS -->
-<div class="cards-container" id="myCards"></div>
+<div class="cards-area" id="myCards"></div>
 
-<!-- BUTTONS -->
 <div class="controls">
 <button class="sort" onclick="sortCards()">Sort</button>
 <button class="drop" onclick="dropGame()">Drop</button>
 <button class="declare" onclick="declareGame()">Declare</button>
-</div>
-
-<!-- AVATAR -->
-<div class="avatar"></div>
-
-</div>
 </div>
 
 <script>
@@ -277,4 +239,4 @@ function declareGame(){
 </script>
 
 </body>
-    </html>
+</html>
