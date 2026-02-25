@@ -2,147 +2,162 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Premium Rummy</title>
+<title>Pro Rummy</title>
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
 body{
     margin:0;
-    background:radial-gradient(circle at center,#145a32 0%,#0b3d2e 70%);
+    background:radial-gradient(circle at top,#3b2a1a,#0b3d2e);
     font-family:'Segoe UI',sans-serif;
     color:white;
-    text-align:center;
+    overflow:hidden;
 }
 
-/* Top bar */
+/* ===== TOP BAR ===== */
 .topbar{
     display:flex;
     justify-content:space-between;
-    padding:12px;
+    padding:10px 15px;
     background:#111;
-    font-weight:bold;
+    font-size:14px;
 }
 
-/* Table area */
-.table-area{
+/* ===== TABLE ===== */
+.table-wrapper{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:65vh;
+}
+
+.table{
     position:relative;
-    width:100%;
-    height:60vh;
-}
-
-/* Main circular table */
-.circle{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    width:340px;
-    height:340px;
-    border-radius:50%;
+    width:90%;
+    max-width:750px;
+    height:320px;
     background:linear-gradient(145deg,#1e8449,#145a32);
-    border:6px solid #2c3e50;
+    border-radius:200px;
+    border:8px solid #a67c00;
     box-shadow:
         inset 0 0 40px rgba(0,0,0,0.7),
-        0 0 30px rgba(0,0,0,0.6);
+        0 0 25px rgba(255,215,0,0.3);
 }
 
-/* Player seats */
-.player{
+/* ===== DECKS ===== */
+.deck-area{
     position:absolute;
-    padding:8px 14px;
-    background:#1c1c1c;
-    border-radius:20px;
-    font-size:12px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.6);
-    transition:0.3s;
+    top:50%;
+    transform:translateY(-50%);
+    text-align:center;
 }
 
-.active{
-    background:#00c853;
-    box-shadow:0 0 18px #00ff88;
+.closed-deck{
+    left:18%;
 }
 
-/* Seat positions */
-.p0{ bottom:10px; left:50%; transform:translateX(-50%); }
-.p1{ bottom:90px; left:10px; }
-.p2{ top:60px; left:10px; }
-.p3{ top:10px; left:50%; transform:translateX(-50%); }
-.p4{ top:60px; right:10px; }
-.p5{ bottom:90px; right:10px; }
+.open-deck{
+    right:18%;
+}
 
-/* Center deck */
-.center{
+.deck-stack{
+    width:60px;
+    height:85px;
+    background:#0d0d0d;
+    border-radius:8px;
+    box-shadow:0 6px 10px rgba(0,0,0,0.6);
+}
+
+.open-card{
+    width:60px;
+    height:85px;
+    background:white;
+    color:black;
+    font-weight:bold;
+    font-size:22px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius:8px;
+    box-shadow:0 6px 10px rgba(0,0,0,0.6);
+}
+
+/* ===== CENTER SLOT ===== */
+.finish-slot{
     position:absolute;
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-}
-
-.deck{
-    margin-bottom:10px;
+    padding:15px 25px;
+    background:rgba(0,0,0,0.3);
+    border-radius:12px;
     font-weight:bold;
 }
 
-.draw{
-    padding:10px 18px;
-    background:#f39c12;
-    border:none;
-    border-radius:8px;
-    font-weight:bold;
-    font-size:14px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.4);
-}
-
-.draw:active{
-    transform:scale(0.95);
-}
-
-/* Cards */
-#myCards{
-    position:fixed;
-    bottom:85px;
+/* ===== CARDS BOTTOM ===== */
+.cards-container{
+    position:absolute;
+    bottom:-55px;
     width:100%;
+    text-align:center;
 }
 
 .card{
     display:inline-block;
-    padding:10px;
-    margin:4px;
+    width:55px;
+    height:80px;
     background:white;
-    color:black;
     border-radius:10px;
-    min-width:38px;
+    margin:4px;
     font-weight:bold;
-    box-shadow:0 4px 10px rgba(0,0,0,0.5);
+    font-size:18px;
+    color:black;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 6px 10px rgba(0,0,0,0.5);
     cursor:pointer;
     transition:0.2s;
 }
 
 .card:hover{
-    transform:translateY(-6px);
+    transform:translateY(-10px);
 }
 
 .red{ color:red; }
 
-/* Bottom buttons */
-.bottom-buttons{
-    position:fixed;
-    bottom:15px;
+/* ===== BUTTONS ===== */
+.controls{
+    position:absolute;
+    bottom:-110px;
     width:100%;
+    text-align:center;
 }
 
 button{
     margin:5px;
-    padding:10px 20px;
+    padding:10px 18px;
     border:none;
     border-radius:8px;
     font-weight:bold;
-    font-size:14px;
 }
 
 .sort{ background:#2979ff; color:white; }
 .drop{ background:#d50000; color:white; }
 .declare{ background:#00c853; color:white; }
+
+/* ===== AVATAR ===== */
+.avatar{
+    position:absolute;
+    bottom:-150px;
+    left:50%;
+    transform:translateX(-50%);
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:#222;
+    border:4px solid gold;
+}
 </style>
 </head>
 
@@ -150,58 +165,68 @@ button{
 
 <div class="topbar">
 <div>Coins: <span id="coins">0</span></div>
-<div id="status">Waiting...</div>
+<div id="status">Deal Stage</div>
 </div>
 
-<div class="table-area">
-<div class="circle"></div>
+<div class="table-wrapper">
+<div class="table">
 
-<div id="players"></div>
-
-<div class="center">
-<div class="deck">Open: <span id="openCard">?</span></div>
-<button class="draw" onclick="drawCard()">DRAW</button>
-</div>
+<!-- CLOSED DECK -->
+<div class="deck-area closed-deck">
+<div class="deck-stack"></div>
+<div>Closed</div>
 </div>
 
-<div id="myCards"></div>
+<!-- OPEN DECK -->
+<div class="deck-area open-deck">
+<div class="open-card" id="openCard">?</div>
+<div>Open</div>
+</div>
 
-<div class="bottom-buttons">
-<button class="sort" onclick="sortCards()">SORT</button>
-<button class="drop" onclick="dropGame()">DROP</button>
-<button class="declare" onclick="declareGame()">DECLARE</button>
+<!-- FINISH SLOT -->
+<div class="finish-slot">
+FINISH SLOT
+</div>
+
+<!-- PLAYER CARDS -->
+<div class="cards-container" id="myCards"></div>
+
+<!-- BUTTONS -->
+<div class="controls">
+<button class="sort" onclick="sortCards()">Sort</button>
+<button class="drop" onclick="dropGame()">Drop</button>
+<button class="declare" onclick="declareGame()">Declare</button>
+</div>
+
+<!-- AVATAR -->
+<div class="avatar"></div>
+
+</div>
 </div>
 
 <script>
-
 const socket = io();
-const mode = parseInt(localStorage.getItem("gameMode")) || 2;
+let myCards=[];
+let isMyTurn=false;
 
 document.getElementById("coins").innerText =
 localStorage.getItem("coins") || 0;
 
-let myCards=[];
-let totalPlayers=2;
-let isMyTurn=false;
-
 socket.emit("joinGame",{
     name:localStorage.getItem("name"),
-    mode:mode
+    mode:localStorage.getItem("gameMode")
 });
 
 socket.on("gameStart",(data)=>{
-    totalPlayers=data.mode;
     myCards=data.myCards;
     document.getElementById("openCard").innerText=data.openCard;
-    renderPlayers();
     renderCards();
 });
 
 socket.on("updateState",(data)=>{
     isMyTurn=(data.turn===0);
     document.getElementById("status").innerText=
-    "Turn: Player "+(data.turn+1)+" | Timer: "+data.timer;
-    highlightTurn(data.turn);
+    "Turn: Player "+(data.turn+1);
 });
 
 socket.on("cardDrawn",(data)=>{
@@ -213,41 +238,14 @@ socket.on("cardDiscarded",(data)=>{
     document.getElementById("openCard").innerText=data.openCard;
 });
 
-socket.on("gameOver",(data)=>{
-    alert("Winner: "+data.winner+"\nWon: "+data.amount+" coins");
-    location.href="lobby.html";
-});
-
-function renderPlayers(){
-    const container=document.getElementById("players");
-    container.innerHTML="";
-    for(let i=0;i<totalPlayers;i++){
-        const div=document.createElement("div");
-        div.className="player p"+i;
-        div.id="player"+i;
-        div.innerText=(i===0?"YOU":"BOT "+i);
-        container.appendChild(div);
-    }
-}
-
-function highlightTurn(turn){
-    for(let i=0;i<totalPlayers;i++){
-        const p=document.getElementById("player"+i);
-        if(p) p.classList.remove("active");
-    }
-    const active=document.getElementById("player"+turn);
-    if(active) active.classList.add("active");
-}
-
 function renderCards(){
     const container=document.getElementById("myCards");
     container.innerHTML="";
     myCards.forEach((card,index)=>{
         const div=document.createElement("div");
         div.className="card";
-        if(card.includes("♥")||card.includes("♦")){
+        if(card.includes("♥")||card.includes("♦"))
             div.classList.add("red");
-        }
         div.innerText=card;
         div.onclick=()=>{
             if(!isMyTurn) return;
@@ -255,11 +253,6 @@ function renderCards(){
         };
         container.appendChild(div);
     });
-}
-
-function drawCard(){
-    if(!isMyTurn) return;
-    socket.emit("drawCard");
 }
 
 function discardCard(index){
@@ -276,14 +269,11 @@ function sortCards(){
 
 function dropGame(){
     socket.emit("dropGame");
-    alert("You Dropped");
-    location.href="lobby.html";
 }
 
 function declareGame(){
     socket.emit("declareGame",{hand:myCards});
 }
-
 </script>
 
 </body>
