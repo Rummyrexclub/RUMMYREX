@@ -1,290 +1,235 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-<title>Rummy Rex Pro</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Rummy</title>
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
-body {
-    background: #000;
-    margin: 0;
-    overflow: hidden;
-    font-family: sans-serif;
+body{
+    margin:0;
+    background:#14532d;
+    font-family:sans-serif;
+    color:white;
+    text-align:center;
 }
 
-.game-area {
-    width: 100vw;
-    height: 100vh;
-    background: radial-gradient(circle, #2d5a27 0%, #0a1f0a 100%);
-    position: relative;
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    background:black;
 }
 
-.table {
-    width: 85vw;
-    height: 50vh;
-    border: 12px solid #5d4037;
-    border-radius: 200px;
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: inset 0 0 100px #000;
+.players{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:10px;
 }
 
-.player {
-    position: absolute;
-    width: 70px;
-    text-align: center;
-    color: white;
+.player{
+    padding:8px 12px;
+    background:#222;
+    border-radius:6px;
 }
 
-.p0 { bottom: -55px; left: 50%; transform: translateX(-50%); }
-.p3 { top: -55px; left: 50%; transform: translateX(-50%); }
-
-.avatar {
-    width: 50px;
-    height: 50px;
-    background: #222;
-    border: 3px solid gold;
-    border-radius: 50%;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 10px;
+.active{
+    background:green;
 }
 
-.active-glow {
-    border-color: #00ff00 !important;
-    box-shadow: 0 0 20px #00ff00;
+.table{
+    margin:20px;
 }
 
-.pts {
-    background: rgba(0,0,0,0.8);
-    color: gold;
-    font-size: 10px;
-    padding: 2px 5px;
-    border-radius: 4px;
-    margin-top: 5px;
+.card{
+    display:inline-block;
+    padding:8px;
+    margin:4px;
+    background:white;
+    color:black;
+    border-radius:5px;
+    min-width:30px;
+    cursor:pointer;
 }
 
-.deck-box {
-    position: absolute;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    gap: 40px;
+.red{
+    color:red;
 }
 
-.slot {
-    width: 55px;
-    height: 75px;
-    background: white;
-    border-radius: 6px;
-    color: black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 20px;
-    box-shadow: 4px 4px 15px #000;
-    cursor: pointer;
+.buttons{
+    margin-top:10px;
 }
 
-.closed {
-    background: linear-gradient(135deg, #fbc02d, #f57f17);
-    color: white;
-    border: 2px solid white;
+button{
+    padding:8px 12px;
+    margin:5px;
+    border:none;
+    border-radius:5px;
+    font-weight:bold;
 }
-
-.hand {
-    position: fixed;
-    bottom: 10px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-.card-group {
-    display: flex;
-}
-
-.card {
-    width: 42px;
-    height: 62px;
-    background: white;
-    border-radius: 5px;
-    color: black;
-    margin-left: -22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    box-shadow: -3px 0 8px #000;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.card:first-child {
-    margin-left: 0;
-}
-
-.card:hover {
-    transform: translateY(-15px);
-}
-
-.header {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 20px;
-    background: rgba(0,0,0,0.8);
-    border-bottom: 2px solid gold;
-    box-sizing: border-box;
-    font-size: 14px;
-}
+.draw{background:orange;}
+.drop{background:red;color:white;}
+.sort{background:blue;color:white;}
+.declare{background:green;color:white;}
 </style>
 </head>
-
 <body>
 
-<div class="game-area">
-
-<div class="header">
-<div style="color: gold;">🪙 <span id="cb">0</span></div>
-<div id="status" style="color:white; font-weight:bold;">INITIALIZING...</div>
-<button onclick="location.href='lobby.html'"
-style="background:red;color:white;border:none;padding:5px 10px;border-radius:4px;font-weight:bold;">
-EXIT
-</button>
+<div class="topbar">
+<div>Coins: <span id="coins">0</span></div>
+<div id="status">Waiting...</div>
 </div>
+
+<div class="players" id="players"></div>
 
 <div class="table">
+<div>Closed Deck</div>
+<button class="draw" onclick="drawCard()">DRAW</button>
 
-<div class="player p0" id="user0">
-<div class="avatar">YOU</div>
-<div class="pts">Timer: <span id="timer">30</span></div>
-</div>
-
-<div class="player p3" id="user3">
-<div class="avatar">OPP</div>
-<div class="pts">BOT</div>
-</div>
-
-<div class="deck-box">
-<div>
-<div class="slot closed" onclick="pickCard()">🎴</div>
-</div>
-
-<div>
-<div class="slot" id="opC">?</div>
+<div style="margin-top:10px;">
+Open Card: <span id="openCard">?</span>
 </div>
 </div>
 
-</div>
+<h3>Your Cards</h3>
+<div id="myCards"></div>
 
-<div class="hand" id="myHand"></div>
-
+<div class="buttons">
+<button class="sort" onclick="sortCards()">SORT</button>
+<button class="drop" onclick="dropGame()">DROP</button>
+<button class="declare" onclick="declareGame()">DECLARE</button>
 </div>
 
 <script>
 
 const socket = io();
-const mode = localStorage.getItem('gameMode') || 2;
+const mode = localStorage.getItem("gameMode") || 2;
 
-document.getElementById('cb').innerText =
-localStorage.getItem('coins') || 0;
+document.getElementById("coins").innerText =
+localStorage.getItem("coins") || 0;
 
-let myHand = [];
+let myCards = [];
 let isMyTurn = false;
+let totalPlayers = 2;
 
-socket.emit('joinGame', {
-name: localStorage.getItem('name'),
-mode: mode
+socket.emit("joinGame", {
+    name: localStorage.getItem("name"),
+    mode: mode
 });
 
-socket.on('gameStart', (data) => {
+socket.on("gameStart", (data)=>{
 
-document.getElementById('status').innerText =
-data.mode == 2 ? "HEAD TO HEAD" : "6 PLAYER TABLE";
+    totalPlayers = data.mode;
 
-myHand = [data.myCards];
-document.getElementById('opC').innerText = data.openCard;
+    document.getElementById("status").innerText =
+    data.mode + " Player Table";
 
-renderHand();
+    myCards = data.myCards;
+    document.getElementById("openCard").innerText =
+    data.openCard;
+
+    renderPlayers();
+    renderCards();
 });
 
-socket.on('updateState', (data) => {
+socket.on("updateState", (data)=>{
+    isMyTurn = (data.turn === 0);
 
-document.getElementById('timer').innerText = data.timer;
-isMyTurn = (data.turn === 0);
+    document.getElementById("status").innerText =
+    "Turn: Player " + (data.turn+1) +
+    " | Timer: " + data.timer;
 
-document.querySelectorAll('.player').forEach((p, idx) => {
-p.classList.remove('active-glow');
-if(idx === data.turn) p.classList.add('active-glow');
-});
-});
-
-socket.on("cardDrawn", (data) => {
-myHand[0].push(data.card);
-renderHand();
+    highlightTurn(data.turn);
 });
 
-socket.on("cardDiscarded", (data) => {
-document.getElementById('opC').innerText = data.openCard;
+socket.on("cardDrawn",(data)=>{
+    myCards.push(data.card);
+    renderCards();
 });
 
-function renderHand() {
-
-const container = document.getElementById('myHand');
-container.innerHTML = '';
-
-myHand.forEach((group, gIdx) => {
-
-const groupDiv = document.createElement('div');
-groupDiv.className = 'card-group';
-
-group.forEach((card, cIdx) => {
-
-const el = document.createElement('div');
-el.className = 'card';
-el.innerText = card;
-
-el.style.color =
-(card.includes('♥') || card.includes('♦'))
-? 'red' : 'black';
-
-el.onclick = () => discardCard(gIdx, cIdx);
-
-groupDiv.appendChild(el);
+socket.on("cardDiscarded",(data)=>{
+    document.getElementById("openCard").innerText =
+    data.openCard;
 });
 
-container.appendChild(groupDiv);
-});
+function renderPlayers(){
+    const container =
+    document.getElementById("players");
+    container.innerHTML="";
+
+    for(let i=0;i<totalPlayers;i++){
+        const div=document.createElement("div");
+        div.className="player";
+        div.id="p"+i;
+        div.innerText =
+        (i===0?"YOU":"BOT "+i);
+        container.appendChild(div);
+    }
 }
 
-function pickCard() {
-if(!isMyTurn) return;
-socket.emit("drawCard");
+function highlightTurn(turn){
+    for(let i=0;i<totalPlayers;i++){
+        document.getElementById("p"+i)
+        .classList.remove("active");
+    }
+    document.getElementById("p"+turn)
+    .classList.add("active");
 }
 
-function discardCard(gIdx, cIdx) {
+function renderCards(){
+    const container =
+    document.getElementById("myCards");
+    container.innerHTML="";
 
-if(!isMyTurn) return;
+    myCards.forEach((card,index)=>{
+        const div=document.createElement("div");
+        div.className="card";
 
-const card = myHand[gIdx][cIdx];
-myHand[gIdx].splice(cIdx, 1);
+        if(card.includes("♥") ||
+           card.includes("♦")){
+            div.classList.add("red");
+        }
 
-socket.emit("discardCard", { card });
+        div.innerText=card;
 
-renderHand();
+        div.onclick=()=>{
+            if(!isMyTurn) return;
+            discardCard(index);
+        };
+
+        container.appendChild(div);
+    });
+}
+
+function drawCard(){
+    if(!isMyTurn) return;
+    socket.emit("drawCard");
+}
+
+function discardCard(index){
+    const card=myCards[index];
+    myCards.splice(index,1);
+    socket.emit("discardCard",{card});
+    renderCards();
+}
+
+function sortCards(){
+    myCards.sort();
+    renderCards();
+}
+
+function dropGame(){
+    alert("You Dropped!");
+    location.reload();
+}
+
+function declareGame(){
+    if(myCards.length !== 13){
+        alert("Invalid Declare!");
+        return;
+    }
+    alert("Declared! (Validation next level)");
 }
 
 </script>
